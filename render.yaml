@@ -2,7 +2,7 @@ services:
   - type: web
     name: url-shortener-frontend
     env: static
-    buildCommand: npm install && npx vite build
+    buildCommand: npm ci && npm run build:prod
     staticPublishPath: ./dist
     routes:
       - type: rewrite
