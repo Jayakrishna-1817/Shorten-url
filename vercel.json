@@ -15,7 +15,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/dist/index.html"
     }
   ],
   "installCommand": "rm -rf node_modules package-lock.json .npm && npm install --include=optional --force --no-audit --timeout=300000",

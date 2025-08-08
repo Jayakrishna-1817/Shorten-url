@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 async function buildProject() {
   console.log('🚀 Starting BULLETPROOF build process...');
@@ -32,7 +32,7 @@ async function buildProject() {
     
     // Check if the build actually produced the correct files
     if (existsSync('dist/index.html')) {
-      const builtHtml = require('fs').readFileSync('dist/index.html', 'utf8');
+      const builtHtml = readFileSync('dist/index.html', 'utf8');
       if (builtHtml.includes('/assets/') && builtHtml.includes('.js') && !builtHtml.includes('/src/main.jsx')) {
         console.log('✅ CLI build completed successfully with proper asset references!');
         return;
@@ -115,7 +115,7 @@ module.exports = {
   ]
 };`;
 
-    require('fs').writeFileSync('webpack.config.js', webpackConfig);
+            writeFileSync('webpack.config.js', webpackConfig);
     execSync('npx webpack', { stdio: 'inherit', timeout: 120000 });
     
     if (existsSync('dist/index.html')) {
@@ -153,7 +153,7 @@ module.exports = {
   </body>
 </html>`;
 
-    require('fs').writeFileSync('dist/index.html', emergencyHtml);
+            writeFileSync('dist/index.html', emergencyHtml);
     console.log('📄 Emergency HTML created with error message');
     
     if (existsSync('dist/index.html')) {
@@ -174,7 +174,7 @@ buildProject().catch(error => {
 }).finally(() => {
   // Final validation
   if (existsSync('dist/index.html')) {
-    const finalHtml = require('fs').readFileSync('dist/index.html', 'utf8');
+    const finalHtml = readFileSync('dist/index.html', 'utf8');
     console.log('📋 FINAL BUILD STATUS:');
     console.log('- dist/index.html exists:', existsSync('dist/index.html'));
     console.log('- Contains assets reference:', finalHtml.includes('/assets/'));

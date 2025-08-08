@@ -8,6 +8,10 @@ node_modules/
 src/
 index.html
 
+# Make sure built files are included
+!dist/
+!dist/**
+
 # Environment files
 .env
 .env.local
