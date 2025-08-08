@@ -2,24 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json", 
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "src": "package.json",
+      "use": "@vercel/static-build"
     }
-  ],
-  "functions": {},
-  "rewrites": [
-    {
-      "source": "/assets/(.*)",
-      "destination": "/assets/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "installCommand": "rm -rf node_modules package-lock.json .npm && npm install --include=optional --force --no-audit --timeout=300000",
-  "buildCommand": "timeout 600 npm run build || echo 'Build timeout, but continuing...'"
+  ]
 }

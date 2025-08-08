@@ -1,24 +1,8 @@
-# AGGRESSIVE: Block ALL source files
 src/
-src/**/*
 *.jsx
-*.dev.*
 index.dev.html
-
-# Development and build files  
 node_modules/
-.git/
-build-*.js
-vite.config.js
-package-lock.json
-.npm/
-
-# Only allow essential production files
-!dist/
-!dist/**/*
-!package.json
-!vercel.json
-!.vercelignore
+dist/
 
 # Environment files
 .env
