@@ -11,10 +11,15 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'esbuild',
+    target: 'esnext',
     rollupOptions: {
       output: {
-        manualChunks: undefined
+        manualChunks: undefined,
+        format: 'es'
       }
     }
+  },
+  esbuild: {
+    target: 'esnext'
   }
 })

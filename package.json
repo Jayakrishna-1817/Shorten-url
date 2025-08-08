@@ -8,8 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node build.js",
+    "build": "node build-robust.js",
+    "build:simple": "node build.js",
     "build:cli": "vite build",
+    "postinstall": "echo 'Dependencies installed successfully'",
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "cd server && npm start",
