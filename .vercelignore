@@ -1,8 +1,12 @@
 # Dependencies
 node_modules/
 
-# Build outputs
-dist/
+# Build outputs (but keep dist/)
+# dist/
+
+# Source files that shouldn't be deployed
+src/
+index.html
 
 # Environment files
 .env
@@ -41,6 +45,9 @@ Thumbs.db
 # Build files we don't need
 build.sh
 *.tsbuildinfo
+build.js
+build-robust.js
+build-nuclear.js
 
 # Git
 .git/

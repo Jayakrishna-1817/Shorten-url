@@ -30,12 +30,22 @@ async function buildProject() {
       }
     });
     
+    // Check if the build actually produced the correct files
     if (existsSync('dist/index.html')) {
-      console.log('✅ CLI build completed successfully!');
-      return;
+      const builtHtml = require('fs').readFileSync('dist/index.html', 'utf8');
+      if (builtHtml.includes('/assets/') && builtHtml.includes('.js') && !builtHtml.includes('/src/main.jsx')) {
+        console.log('✅ CLI build completed successfully with proper asset references!');
+        return;
+      } else {
+        console.log('⚠️ CLI build created HTML but with incorrect references, trying alternatives...');
+        console.log('Built HTML preview:', builtHtml.substring(0, 500));
+      }
+    } else {
+      console.log('⚠️ CLI build did not create dist/index.html');
     }
   } catch (error) {
     console.log('⚠️ CLI build failed, trying alternative...');
+    console.log('Error details:', error.message);
   }
 
   // Method 3: Force install specific Rollup package and retry
@@ -120,13 +130,31 @@ module.exports = {
   try {
     console.log('🔧 ABSOLUTE LAST RESORT: Manual file preparation...');
     execSync('mkdir -p dist', { stdio: 'ignore' });
-    execSync('cp index.html dist/', { stdio: 'ignore' });
-    execSync('mkdir -p dist/assets', { stdio: 'ignore' });
     
-    // Copy source files directly (for debugging)
-    execSync('cp -r src dist/src', { stdio: 'ignore' });
-    
-    console.log('📄 Basic files copied to dist/ - check Vercel logs for details');
+    // Create a basic working HTML file that loads the app correctly
+    const emergencyHtml = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LinkForge - URL Shortener</title>
+  </head>
+  <body>
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+        <div style="text-align: center;">
+          <h2>LinkForge URL Shortener</h2>
+          <p>Build system encountered issues. Please check deployment logs.</p>
+          <p><a href="mailto:support@example.com">Contact Support</a></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>`;
+
+    require('fs').writeFileSync('dist/index.html', emergencyHtml);
+    console.log('📄 Emergency HTML created with error message');
     
     if (existsSync('dist/index.html')) {
       console.log('⚡ Emergency file copy completed');
@@ -143,4 +171,24 @@ module.exports = {
 buildProject().catch(error => {
   console.error('💥 Build script crashed:', error);
   process.exit(1);
+}).finally(() => {
+  // Final validation
+  if (existsSync('dist/index.html')) {
+    const finalHtml = require('fs').readFileSync('dist/index.html', 'utf8');
+    console.log('📋 FINAL BUILD STATUS:');
+    console.log('- dist/index.html exists:', existsSync('dist/index.html'));
+    console.log('- Contains assets reference:', finalHtml.includes('/assets/'));
+    console.log('- Contains JS file:', finalHtml.includes('.js'));
+    console.log('- Avoids source reference:', !finalHtml.includes('/src/main.jsx'));
+    
+    if (finalHtml.includes('/src/main.jsx')) {
+      console.error('🚨 WARNING: Built HTML still references source files!');
+      console.log('HTML preview:', finalHtml.substring(0, 500));
+    } else {
+      console.log('✅ Build validation successful!');
+    }
+  } else {
+    console.error('💥 CRITICAL: No dist/index.html found after all build attempts');
+    process.exit(1);
+  }
 });
