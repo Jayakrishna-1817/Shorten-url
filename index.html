@@ -5,35 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LinkForge - URL Shortener</title>
-    <script type="module" crossorigin src="/assets/index-B5PkICRg.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-JmeRU7qG.css">
+    <script type="module" crossorigin src="/assets/index-CtnymbcK.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-oMECvIMr.css">
   </head>
   <body>
-    <div id="root">
-      <div style="padding: 2rem; text-align: center; font-family: Arial, sans-serif;">
-        <h1>Loading LinkForge...</h1>
-        <p>If this message persists, there may be a JavaScript error.</p>
-      </div>
-    </div>
-    
-    <script>
-      // Error catching
-      window.addEventListener('error', function(e) {
-        console.error('JavaScript Error:', e.error || e.message);
-        const root = document.getElementById('root');
-        if (root) {
-          root.innerHTML = '<div style="padding: 2rem; text-align: center; font-family: Arial, sans-serif; color: red;"><h1>❌ JavaScript Error</h1><p>' + (e.error ? e.error.message : e.message) + '</p></div>';
-        }
-      });
-      
-      // Timeout check
-      setTimeout(function() {
-        const root = document.getElementById('root');
-        if (root && root.innerHTML.includes('Loading LinkForge')) {
-          root.innerHTML = '<div style="padding: 2rem; text-align: center; font-family: Arial, sans-serif; color: orange;"><h1>⚠️ React App Failed to Load</h1><p>Check browser console for errors</p></div>';
-        }
-      }, 5000);
-    </script>
-
+    <div id="root"></div>
   </body>
 </html>
