@@ -9,8 +9,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:prod": "npm exec vite build",
-    "postinstall": "chmod +x node_modules/.bin/vite",
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "cd server && npm start",
@@ -36,6 +34,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
-    "vite": "^7.1.0"
+    "vite": "^6.0.0"
   }
 }
