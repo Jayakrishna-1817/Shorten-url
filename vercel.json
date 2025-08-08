@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "package.json", 
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
@@ -11,11 +11,12 @@
   ],
   "routes": [
     {
-      "handle": "filesystem"
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "dest": "/index.html"
     }
   ],
   "installCommand": "rm -rf node_modules package-lock.json .npm && npm install --include=optional --force --no-audit --timeout=300000",
