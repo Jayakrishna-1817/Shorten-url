@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node build-robust.js",
+    "build": "node build-nuclear.js",
+    "build:robust": "node build-robust.js",
     "build:simple": "node build.js",
     "build:cli": "vite build",
     "postinstall": "echo 'Dependencies installed successfully'",
