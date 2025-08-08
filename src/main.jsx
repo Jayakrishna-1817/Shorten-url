@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import SimpleApp from './SimpleApp.jsx'
+import NoAnimationBulkApp from './NoAnimationBulkApp.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <SimpleApp />
+    <NoAnimationBulkApp />
   </StrictMode>,
 )
