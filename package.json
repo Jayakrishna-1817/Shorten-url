@@ -7,9 +7,10 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "node build-nuclear.js",
-    "build:robust": "node build-robust.js",
+    "dev": "vite --config vite.config.js --host index.dev.html",
+    "build": "node build-clean.js",
+    "build:nuclear": "node build-nuclear.js",
+    "build:robust": "node build-robust.js", 
     "build:simple": "node build.js",
     "build:cli": "vite build",
     "postinstall": "echo 'Dependencies installed successfully'",

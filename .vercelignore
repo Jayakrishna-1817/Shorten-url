@@ -6,7 +6,7 @@ node_modules/
 
 # Source files that shouldn't be deployed
 src/
-index.html
+index.dev.html
 
 # Make sure built files are included
 !dist/
