@@ -9,14 +9,15 @@
       }
     }
   ],
-  "routes": [
+  "functions": {},
+  "rewrites": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "installCommand": "rm -rf node_modules package-lock.json .npm && npm install --include=optional --force --no-audit --timeout=300000",

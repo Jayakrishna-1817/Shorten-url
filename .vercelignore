@@ -1,16 +1,24 @@
-# Dependencies
-node_modules/
-
-# Build outputs (but keep dist/)
-# dist/
-
-# Source files that shouldn't be deployed
+# AGGRESSIVE: Block ALL source files
 src/
+src/**/*
+*.jsx
+*.dev.*
 index.dev.html
 
-# Make sure built files are included
+# Development and build files  
+node_modules/
+.git/
+build-*.js
+vite.config.js
+package-lock.json
+.npm/
+
+# Only allow essential production files
 !dist/
-!dist/**
+!dist/**/*
+!package.json
+!vercel.json
+!.vercelignore
 
 # Environment files
 .env
