@@ -7,14 +7,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "vite --config vite.config.js --host index.dev.html",
-    "build": "node build-root.js",
-    "build:deploy": "node build-deploy.js",
-    "build:clean": "node build-clean.js",
-    "build:nuclear": "node build-nuclear.js",
-    "build:robust": "node build-robust.js", 
-    "build:simple": "node build.js",
-    "build:cli": "vite build",
+    "dev": "vite --host 0.0.0.0",
+    "dev:local": "vite",
+    "build": "vite build",
     "postinstall": "echo 'Dependencies installed successfully'",
     "lint": "eslint .",
     "preview": "vite preview",

@@ -98,6 +98,110 @@ app.post('/shorturls', validateCreateURLInput, (req, res) => {
   }
 });
 
+// Add API endpoints that frontend expects
+app.post('/api/urls', validateCreateURLInput, (req, res) => {
+  try {
+    const { originalUrl, validityPeriod = 30, customCode } = req.body;
+
+    Logger.info('Creating short URL via API', { originalUrl, validityPeriod, customCode });
+
+    const result = urlStore.createShortURL(originalUrl, validityPeriod, customCode);
+
+    Logger.info('Short URL created successfully via API', result);
+
+    // Format response to match frontend expectations
+    res.status(201).json({
+      shortUrl: result.shortUrl,
+      originalUrl: result.originalUrl,
+      shortcode: result.shortcode,
+      createdAt: result.createdAt,
+      expiresAt: result.expiresAt
+    });
+  } catch (error) {
+    Logger.error('Error creating short URL via API', { error: error.message, body: req.body });
+
+    if (error.message.includes('Invalid URL format')) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Invalid URL format'
+      });
+    }
+
+    if (error.message.includes('shortcode already exists') || error.message.includes('Shortcode collision')) {
+      return res.status(409).json({
+        error: 'Conflict',
+        message: 'Shortcode already exists'
+      });
+    }
+
+    if (error.message.includes('Invalid shortcode format')) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Invalid shortcode format. Must be alphanumeric and up to 20 characters'
+      });
+    }
+
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to create short URL'
+    });
+  }
+});
+
+app.post('/api/urls/bulk', (req, res) => {
+  try {
+    const { urls } = req.body;
+
+    if (!Array.isArray(urls) || urls.length === 0) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'URLs array is required'
+      });
+    }
+
+    Logger.info('Creating bulk short URLs via API', { count: urls.length });
+
+    const results = [];
+    const errors = [];
+
+    urls.forEach((urlData, index) => {
+      try {
+        const { url, validity = 30, customCode } = urlData;
+        const result = urlStore.createShortURL(url, validity, customCode);
+        results.push({
+          ...result,
+          originalUrl: result.originalUrl,
+          shortUrl: result.shortUrl
+        });
+      } catch (error) {
+        errors.push({
+          index,
+          url: urlData.url,
+          error: error.message
+        });
+      }
+    });
+
+    Logger.info('Bulk short URLs created', { 
+      successful: results.length, 
+      errors: errors.length 
+    });
+
+    res.status(201).json({
+      successful: results,
+      errors: errors,
+      total: urls.length
+    });
+  } catch (error) {
+    Logger.error('Error creating bulk short URLs', { error: error.message, body: req.body });
+
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to create bulk short URLs'
+    });
+  }
+});
+
 app.get('/:shortcode', (req, res) => {
   const { shortcode } = req.params;
 

@@ -87,7 +87,7 @@ const URLShortenerPage = ({ onUrlShortened }) => {
 
     setLoading(true)
     try {
-      const response = await fetch('https://shorten-url-api-40d6.onrender.com/api/urls/bulk', {
+      const response = await fetch('http://localhost:3000/api/urls/bulk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
