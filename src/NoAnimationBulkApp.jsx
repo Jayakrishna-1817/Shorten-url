@@ -3,7 +3,7 @@ import {
   Link2, Zap, BarChart3, Globe, Calendar, MousePointer, 
   CheckCircle, Copy, ExternalLink, Shield, Clock, Trash2,
   TrendingUp, Users, Target, Award, ArrowRight, Star,
-  Activity, Eye, Download, Settings, Filter, Search,
+  Activity, Eye, Search,
   AlertCircle
 } from 'lucide-react'
 import './ModernApp.css'
@@ -51,7 +51,8 @@ const URLShortenerPage = ({ onUrlShortened }) => {
     { value: '60', label: '1 hour' },
     { value: '1440', label: '24 hours' },
     { value: '10080', label: '7 days' },
-    { value: '43200', label: '30 days' }
+    { value: '43200', label: '30 days' },
+    { value: 'never', label: '🔗 Never expires' }
   ]
 
   const showNotification = (message, type = 'success') => {
@@ -96,7 +97,7 @@ const URLShortenerPage = ({ onUrlShortened }) => {
           urls: validUrls.map(item => ({
             url: item.url.trim(),
             customCode: item.customCode || undefined,
-            validity: parseInt(item.validity) || 30
+            validity: item.validity === 'never' ? 'never' : (parseInt(item.validity) || 30)
           }))
         })
       })
@@ -116,7 +117,7 @@ const URLShortenerPage = ({ onUrlShortened }) => {
           expiresAt: new Date(result.expiry),
           clicks: 0,
           isValid: true,
-          validityMinutes: parseInt(result.validity) || 30
+          validityMinutes: result.validity === 'never' ? 'never' : (parseInt(result.validity) || 30)
         }))
         
         setShortenedUrls(prev => [...newShortenedUrls, ...prev])
@@ -145,6 +146,28 @@ const URLShortenerPage = ({ onUrlShortened }) => {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
     showNotification('Copied to clipboard!')
+  }
+
+  const deleteUrl = async (shortcode) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/urls/${shortcode}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        // Remove from shortenedUrls if it exists there
+        setShortenedUrls(prev => prev.filter(url => !url.shortUrl.includes(shortcode)))
+        showNotification('URL deleted successfully!')
+        // Refresh analytics page if we're on it
+        if (window.location.hash === '#analytics') {
+          window.location.reload()
+        }
+      } else {
+        showNotification('Failed to delete URL', 'error')
+      }
+    } catch (error) {
+      showNotification('Error deleting URL', 'error')
+    }
   }
 
   return (
@@ -269,7 +292,7 @@ const URLShortenerPage = ({ onUrlShortened }) => {
                       </span>
                       <span className="expires-badge">
                         <Clock size={14} />
-                        Expires: {item.expiresAt.toLocaleDateString()}, {item.expiresAt.toLocaleTimeString()}
+                        {item.neverExpires ? 'Never expires' : `Expires: ${item.expiresAt.toLocaleDateString()}, ${item.expiresAt.toLocaleTimeString()}`}
                       </span>
                       <span className="created-badge">
                         <Calendar size={14} />
@@ -308,7 +331,7 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`https://shorten-url-api-40d6.onrender.com/api/analytics?timeRange=${range}`)
+      const response = await fetch(`http://localhost:3000/api/analytics?timeRange=${range}`)
       const data = await response.json()
       
       if (!response.ok) {
@@ -344,6 +367,36 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
 
   const handleTimeRangeChange = (e) => {
     setTimeRange(e.target.value)
+  }
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Simple notification - you could enhance this with a toast
+      console.log('Copied to clipboard:', text)
+      alert('Copied to clipboard!')
+    }).catch(err => {
+      console.error('Failed to copy text: ', err)
+      alert('Failed to copy to clipboard')
+    })
+  }
+
+  const deleteUrl = async (shortcode) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/urls/${shortcode}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        // Refresh analytics data after deletion
+        fetchAnalytics(timeRange)
+        alert('URL deleted successfully!')
+      } else {
+        alert('Failed to delete URL')
+      }
+    } catch (error) {
+      console.error('Error deleting URL:', error)
+      alert('Error deleting URL')
+    }
   }
 
   return (
@@ -437,16 +490,6 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
             <div className="urls-table">
               <div className="table-header">
                 <h3 style={{color: 'black'}}>URL Performance</h3>
-                <div className="table-actions">
-                  <button className="action-btn secondary">
-                    <Download size={16} />
-                    Export
-                  </button>
-                  <button className="action-btn secondary">
-                    <Filter size={16} />
-                    Filter
-                  </button>
-                </div>
               </div>
               <div className="table-container">
                 <table className="urls-data-table">
@@ -496,7 +539,7 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
                         </td>
                         <td>
                           <div className="date-cell">
-                            {new Date(url.expiresAt).toLocaleDateString()}
+                            {url.neverExpires ? 'Never expires' : new Date(url.expiresAt).toLocaleDateString()}
                           </div>
                         </td>
                         <td>
@@ -506,13 +549,25 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
                         </td>
                         <td>
                           <div className="table-actions">
-                            <button className="action-btn small rounded-btn">
+                            <button 
+                              className="action-btn small rounded-btn"
+                              onClick={() => window.open(`http://localhost:3000/${url.shortcode}`, '_blank')}
+                              title="Visit URL"
+                            >
                               <Eye size={14} />
                             </button>
-                            <button className="action-btn small rounded-btn">
-                              <Settings size={14} />
+                            <button 
+                              className="action-btn small rounded-btn"
+                              onClick={() => copyToClipboard(`http://localhost:3000/${url.shortcode}`)}
+                              title="Copy URL"
+                            >
+                              <Copy size={14} />
                             </button>
-                            <button className="action-btn small danger rounded-btn">
+                            <button 
+                              className="action-btn small danger rounded-btn"
+                              onClick={() => deleteUrl(url.shortcode)}
+                              title="Delete URL"
+                            >
                               <Trash2 size={14} />
                             </button>
                           </div>

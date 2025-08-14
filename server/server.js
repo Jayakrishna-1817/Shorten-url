@@ -188,8 +188,22 @@ app.post('/api/urls/bulk', (req, res) => {
     });
 
     res.status(201).json({
-      successful: results,
-      errors: errors,
+      success: true,
+      results: results.map(result => ({
+        success: true,
+        originalUrl: result.originalUrl,
+        shortLink: result.shortUrl,
+        shortcode: result.shortcode,
+        createdAt: result.createdAt,
+        expiry: result.expiresAt,
+        validity: result.validity
+      })).concat(errors.map(error => ({
+        success: false,
+        originalUrl: error.url,
+        error: error.error
+      }))),
+      successful: results.length,
+      failed: errors.length,
       total: urls.length
     });
   } catch (error) {
@@ -198,6 +212,38 @@ app.post('/api/urls/bulk', (req, res) => {
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to create bulk short URLs'
+    });
+  }
+});
+
+// DELETE route to delete a URL
+app.delete('/api/urls/:shortcode', (req, res) => {
+  const { shortcode } = req.params;
+  
+  Logger.info('DELETE request received', { shortcode });
+
+  try {
+    const deleted = urlStore.deleteURL(shortcode);
+    
+    if (!deleted) {
+      Logger.warn('Shortcode not found for deletion', { shortcode });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Shortcode not found'
+      });
+    }
+
+    Logger.info('URL deleted successfully', { shortcode });
+    res.json({
+      success: true,
+      message: 'URL deleted successfully'
+    });
+
+  } catch (error) {
+    Logger.error('Error deleting URL', { error: error.message, shortcode });
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to delete URL'
     });
   }
 });
@@ -320,66 +366,6 @@ const validateBulkURLInput = (req, res, next) => {
 
   next();
 };
-
-// Bulk URL creation endpoint
-app.post('/api/urls/bulk', validateBulkURLInput, async (req, res) => {
-  try {
-    const { urls } = req.body;
-    const results = [];
-    
-    for (const urlData of urls) {
-      const { url, customCode, customName, validity = 30 } = urlData;
-      
-      try {
-        // Use existing createShortURL method
-        const result = urlStore.createShortURL(url, validity, customCode);
-        
-        // Enhance the result with custom name
-        const enhancedResult = {
-          ...result,
-          customName: customName || 'Untitled Link',
-          success: true
-        };
-        
-        results.push(enhancedResult);
-        
-        Logger.info('Bulk URL created', {
-          shortCode: result.shortcode,
-          originalUrl: url,
-          customName: customName,
-          validity: validity
-        });
-        
-      } catch (error) {
-        results.push({
-          originalUrl: url,
-          error: error.message,
-          success: false
-        });
-        
-        Logger.warn('Failed to create URL in bulk', {
-          url,
-          error: error.message
-        });
-      }
-    }
-    
-    res.json({
-      success: true,
-      results,
-      totalProcessed: urls.length,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length
-    });
-    
-  } catch (error) {
-    Logger.error('Bulk URL creation failed', { error: error.message });
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to create URLs'
-    });
-  }
-});
 
 // Enhanced analytics endpoint
 app.get('/api/analytics', (req, res) => {

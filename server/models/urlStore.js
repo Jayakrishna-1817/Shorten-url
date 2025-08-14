@@ -37,7 +37,14 @@ export class URLStore {
     }
 
     const createdAt = new Date();
-    const expiryDate = new Date(createdAt.getTime() + (validity * 60 * 1000));
+    let expiryDate;
+    
+    if (validity === 'never') {
+      // Set expiry to a very far future date (100 years from now)
+      expiryDate = new Date(createdAt.getTime() + (100 * 365 * 24 * 60 * 60 * 1000));
+    } else {
+      expiryDate = new Date(createdAt.getTime() + (validity * 60 * 1000));
+    }
 
     const urlData = {
       originalUrl,
@@ -47,6 +54,7 @@ export class URLStore {
       expiryDate: expiryDate.toISOString(),
       expiresAt: expiryDate.toISOString(), // Alias for compatibility
       validity,
+      neverExpires: validity === 'never',
       isValid: true,
       clicks: 0
     };
@@ -77,6 +85,11 @@ export class URLStore {
     if (!urlData) {
       Logger.warn('Shortcode not found', { shortcode });
       return null;
+    }
+
+    // If URL never expires, skip expiry check
+    if (urlData.neverExpires || urlData.validity === 'never') {
+      return urlData;
     }
 
     const now = new Date();
@@ -142,7 +155,8 @@ export class URLStore {
         createdAt: urlData.createdAt,
         expiryDate: urlData.expiryDate,
         expiresAt: urlData.expiresAt || urlData.expiryDate,
-        isValid: urlData.isValid !== false && new Date() < new Date(urlData.expiryDate),
+        neverExpires: urlData.neverExpires || false,
+        isValid: urlData.neverExpires || (urlData.isValid !== false && new Date() < new Date(urlData.expiryDate)),
         clicks: urlData.clicks || (analytics ? analytics.totalClicks : 0),
         totalClicks: analytics ? analytics.totalClicks : 0
       });
@@ -153,6 +167,21 @@ export class URLStore {
 
   getAll() {
     return this.getAllURLs();
+  }
+
+  deleteURL(shortcode) {
+    const urlData = this.urls.get(shortcode);
+    
+    if (!urlData) {
+      return false; // URL not found
+    }
+
+    // Delete URL data and analytics
+    this.urls.delete(shortcode);
+    this.analytics.delete(shortcode);
+    
+    Logger.info('URL deleted', { shortcode, originalUrl: urlData.originalUrl });
+    return true;
   }
 
   getCoarseGeolocation(ip) {
