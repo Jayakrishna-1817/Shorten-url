@@ -17,9 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
-// Serve static files from dist directory
-app.use(express.static(path.join(__dirname, '../dist')));
-
 const errorHandler = (error, req, res, next) => {
   Logger.error('Request error', {
     error: error.message,
@@ -359,6 +356,9 @@ app.get('/api/analytics', (req, res) => {
     });
   }
 });
+
+// Serve static files from dist directory (after all API routes)
+app.use(express.static(path.join(__dirname, '../dist')));
 
 app.use(errorHandler);
 
