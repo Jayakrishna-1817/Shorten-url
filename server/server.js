@@ -9,6 +9,20 @@ import { Logger, requestLogger } from './middleware/logger.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+console.log('🚀 Server starting...');
+console.log('📁 __dirname:', __dirname);
+console.log('📁 dist path:', path.join(__dirname, '../dist'));
+
+// Check if dist directory exists
+import fs from 'fs';
+const distPath = path.join(__dirname, '../dist');
+const distExists = fs.existsSync(distPath);
+console.log('📦 dist directory exists:', distExists);
+if (distExists) {
+  const distContents = fs.readdirSync(distPath);
+  console.log('📦 dist contents:', distContents);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const urlStore = new URLStore();
@@ -25,6 +39,12 @@ app.use((req, res, next) => {
     contentType: req.headers['content-type']
   });
   next();
+});
+
+// Simple test API route
+app.get('/api/test', (req, res) => {
+  console.log('🔥 TEST API ROUTE HIT');
+  res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
 });
 
 const errorHandler = (error, req, res, next) => {

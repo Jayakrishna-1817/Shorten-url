@@ -1,13 +1,8 @@
 services:
-  # Combined Frontend + Backend Service
+  # Single Node.js service serving both API and frontend
   - type: web
-    name: url-shortener-app
+    name: url-shortener-combined
     env: node
-    region: oregon
     buildCommand: npm install && npm run build && cd server && npm install
-    startCommand: cd server && npm start
+    startCommand: cd server && node server.js
     healthCheckPath: /health
-    staticPublishPath: ./dist
-    envVars:
-      - key: NODE_ENV
-        value: production
