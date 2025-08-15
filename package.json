@@ -7,6 +7,7 @@
     "node": "18.x"
   },
   "scripts": {
+    "start": "echo 'Static site - no start needed. Files served from dist/'",
     "dev": "node build.js && cd server && npm start",
     "build": "echo 'Building with custom script...' && node build.js && echo 'Build completed!'",
     "preview": "echo 'No preview needed - using custom build'",
