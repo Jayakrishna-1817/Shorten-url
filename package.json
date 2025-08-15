@@ -7,7 +7,7 @@
     "node": "18.x"
   },
   "scripts": {
-    "start": "echo 'Static site - no start needed. Files served from dist/'",
+    "start": "npx serve dist -p $PORT",
     "dev": "node build.js && cd server && npm start",
     "build": "echo 'Building with custom script...' && node build.js && echo 'Build completed!'",
     "preview": "echo 'No preview needed - using custom build'",
@@ -16,7 +16,8 @@
   "dependencies": {
     "lucide-react": "^0.536.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "serve": "^14.2.3"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",
