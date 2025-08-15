@@ -17,6 +17,16 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
+// Add debug middleware to see all requests
+app.use((req, res, next) => {
+  console.log(`🌐 REQUEST: ${req.method} ${req.path}`, { 
+    body: req.body, 
+    isAPI: req.path.startsWith('/api'),
+    contentType: req.headers['content-type']
+  });
+  next();
+});
+
 const errorHandler = (error, req, res, next) => {
   Logger.error('Request error', {
     error: error.message,
@@ -67,11 +77,13 @@ const validateCreateURLInput = (req, res, next) => {
 // Main API endpoint for creating URLs
 app.post('/api/urls', validateCreateURLInput, (req, res) => {
   try {
-    const { originalUrl, validityPeriod = 30, customCode } = req.body;
+    console.log('🔥 API ROUTE HIT: /api/urls POST', { body: req.body });
+    const { url, originalUrl, validity, validityPeriod = 30, customCode } = req.body;
+    const urlToProcess = url || originalUrl;
 
-    Logger.info('Creating short URL via API', { originalUrl, validityPeriod, customCode });
+    Logger.info('Creating short URL via API', { originalUrl: urlToProcess, validityPeriod, customCode });
 
-    const result = urlStore.createShortURL(originalUrl, validityPeriod, customCode);
+    const result = urlStore.createShortURL(urlToProcess, validityPeriod, customCode);
 
     Logger.info('Short URL created successfully via API', result);
 
@@ -79,6 +91,7 @@ app.post('/api/urls', validateCreateURLInput, (req, res) => {
     res.status(201).json({
       shortUrl: result.shortUrl,
       originalUrl: result.originalUrl,
+      shortCode: result.shortcode,  // Make sure this matches frontend expectation
       shortcode: result.shortcode,
       createdAt: result.createdAt,
       expiresAt: result.expiresAt
