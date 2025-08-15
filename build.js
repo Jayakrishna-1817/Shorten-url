@@ -37,7 +37,7 @@ const html = `<!DOCTYPE html>
         const { useState, useEffect } = React;
         
         // API Configuration
-        const API_BASE_URL = 'https://url-shortener-backend.onrender.com';
+        const API_BASE_URL = 'https://shorten-url-backend-o3on.onrender.com';
         
         // Lucide Icons as simple SVGs
         const Link2 = () => React.createElement('svg', {width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2}, 
