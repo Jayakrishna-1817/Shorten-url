@@ -10,7 +10,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'esbuild',
-    target: 'esnext'
+    minify: false,
+    target: 'es2015',
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'lucide-react']
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom']
   }
 })
