@@ -1,8 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import process from 'process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { URLStore } from './models/urlStore.js';
 import { Logger, requestLogger } from './middleware/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +16,9 @@ const urlStore = new URLStore();
 app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
+
+// Serve static files from dist directory
+app.use(express.static(path.join(__dirname, '../dist')));
 
 const errorHandler = (error, req, res, next) => {
   Logger.error('Request error', {
@@ -354,12 +362,19 @@ app.get('/api/analytics', (req, res) => {
 
 app.use(errorHandler);
 
-app.use('*', (req, res) => {
-  Logger.warn('Route not found', { method: req.method, url: req.url });
-  res.status(404).json({
-    error: 'Not Found',
-    message: 'Route not found'
-  });
+// Serve frontend for non-API routes
+app.get('*', (req, res) => {
+  // Don't serve frontend for API routes
+  if (req.path.startsWith('/api')) {
+    Logger.warn('API route not found', { method: req.method, url: req.url });
+    return res.status(404).json({
+      error: 'Not Found',
+      message: 'API route not found'
+    });
+  }
+  
+  // Serve the frontend
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(PORT, () => {
