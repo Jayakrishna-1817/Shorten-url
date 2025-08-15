@@ -1,12 +1,12 @@
 services:
-  # Frontend (Static Site)
+  # Frontend (Static Site)  
   - type: web
     name: url-shortener-frontend
     env: static
     buildCommand: |
-      npm install --force
-      npm install @rollup/rollup-linux-x64-gnu --force
-      NODE_ENV=production npm run build:vite
+      echo "Using simple build without Vite/Rollup"
+      npm install --production=false
+      node build.js
     staticPublishPath: ./dist
     routes:
       - type: rewrite
