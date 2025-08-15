@@ -6,6 +6,7 @@ import {
   Activity, Eye, Search,
   AlertCircle
 } from 'lucide-react'
+import { API_BASE_URL } from './config.js'
 import './ModernApp.css'
 
 const Header = ({ activeTab, setActiveTab }) => (
@@ -88,7 +89,7 @@ const URLShortenerPage = ({ onUrlShortened }) => {
 
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:3000/api/urls/bulk', {
+      const response = await fetch(`${API_BASE_URL}/api/urls/bulk`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +151,7 @@ const URLShortenerPage = ({ onUrlShortened }) => {
 
   const deleteUrl = async (shortcode) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/urls/${shortcode}`, {
+      const response = await fetch(`${API_BASE_URL}/api/urls/${shortcode}`, {
         method: 'DELETE'
       })
       
@@ -331,7 +332,7 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`http://localhost:3000/api/analytics?timeRange=${range}`)
+      const response = await fetch(`${API_BASE_URL}/api/analytics?timeRange=${range}`)
       const data = await response.json()
       
       if (!response.ok) {
@@ -382,7 +383,7 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
 
   const deleteUrl = async (shortcode) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/urls/${shortcode}`, {
+      const response = await fetch(`${API_BASE_URL}/api/urls/${shortcode}`, {
         method: 'DELETE'
       })
       
@@ -551,21 +552,21 @@ const AnalyticsPage = ({ urlData, setActiveTab }) => {
                           <div className="table-actions">
                             <button 
                               className="action-btn small rounded-btn"
-                              onClick={() => window.open(`http://localhost:3000/${url.shortcode}`, '_blank')}
+                              onClick={() => window.open(`${API_BASE_URL}/${url.shortCode}`, '_blank')}
                               title="Visit URL"
                             >
                               <Eye size={14} />
                             </button>
                             <button 
                               className="action-btn small rounded-btn"
-                              onClick={() => copyToClipboard(`http://localhost:3000/${url.shortcode}`)}
+                              onClick={() => copyToClipboard(`${API_BASE_URL}/${url.shortCode}`)}
                               title="Copy URL"
                             >
                               <Copy size={14} />
                             </button>
                             <button 
                               className="action-btn small danger rounded-btn"
-                              onClick={() => deleteUrl(url.shortcode)}
+                              onClick={() => deleteUrl(url.shortCode)}
                               title="Delete URL"
                             >
                               <Trash2 size={14} />

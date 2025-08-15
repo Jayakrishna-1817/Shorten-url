@@ -5,7 +5,7 @@ import { URLStore } from './models/urlStore.js';
 import { Logger, requestLogger } from './middleware/logger.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const urlStore = new URLStore();
 
 app.use(cors());
@@ -31,9 +31,10 @@ const errorHandler = (error, req, res, next) => {
 };
 
 const validateCreateURLInput = (req, res, next) => {
-  const { url, validity } = req.body;
+  const { url, originalUrl, validity, validityPeriod } = req.body;
+  const urlToValidate = url || originalUrl;
 
-  if (!url) {
+  if (!urlToValidate) {
     Logger.warn('Missing required field: url', { body: req.body });
     return res.status(400).json({
       error: 'Bad Request',
@@ -41,64 +42,24 @@ const validateCreateURLInput = (req, res, next) => {
     });
   }
 
-  if (validity !== undefined) {
-    const validityNum = parseInt(validity);
+  const validityToCheck = validity || validityPeriod;
+  if (validityToCheck !== undefined && validityToCheck !== 'never') {
+    const validityNum = parseInt(validityToCheck);
     if (isNaN(validityNum) || validityNum <= 0) {
-      Logger.warn('Invalid validity period', { validity });
+      Logger.warn('Invalid validity period', { validity: validityToCheck });
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Validity must be a positive integer representing minutes'
+        message: 'Validity must be a positive integer representing minutes or "never"'
       });
     }
     req.body.validity = validityNum;
+    req.body.validityPeriod = validityNum;
   }
 
   next();
 };
 
-app.post('/shorturls', validateCreateURLInput, (req, res) => {
-  try {
-    const { url, validity = 30, shortcode } = req.body;
-
-    Logger.info('Creating short URL request', { url, validity, shortcode });
-
-    const result = urlStore.createShortURL(url, validity, shortcode);
-
-    Logger.info('Short URL created successfully', result);
-
-    res.status(201).json(result);
-  } catch (error) {
-    Logger.error('Error creating short URL', { error: error.message, body: req.body });
-
-    if (error.message.includes('Invalid URL format')) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Invalid URL format'
-      });
-    }
-
-    if (error.message.includes('shortcode already exists') || error.message.includes('Shortcode collision')) {
-      return res.status(409).json({
-        error: 'Conflict',
-        message: 'Shortcode already exists'
-      });
-    }
-
-    if (error.message.includes('Invalid shortcode format')) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Invalid shortcode format. Must be alphanumeric and up to 20 characters'
-      });
-    }
-
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to create short URL'
-    });
-  }
-});
-
-// Add API endpoints that frontend expects
+// Main API endpoint for creating URLs
 app.post('/api/urls', validateCreateURLInput, (req, res) => {
   try {
     const { originalUrl, validityPeriod = 30, customCode } = req.body;
@@ -279,40 +240,7 @@ app.get('/:shortcode', (req, res) => {
   res.redirect(urlData.originalUrl);
 });
 
-app.get('/shorturls/:shortcode', (req, res) => {
-  const { shortcode } = req.params;
-
-  Logger.info('Statistics request', { shortcode });
-
-  const analytics = urlStore.getAnalytics(shortcode);
-
-  if (!analytics) {
-    Logger.warn('Statistics not found for shortcode', { shortcode });
-    return res.status(404).json({
-      error: 'Not Found',
-      message: 'Short URL not found'
-    });
-  }
-
-  Logger.info('Statistics retrieved', { shortcode, totalClicks: analytics.totalClicks });
-
-  res.json(analytics);
-});
-
-app.get('/api/statistics', (req, res) => {
-  Logger.info('All statistics request');
-
-  const allUrls = urlStore.getAllURLs();
-
-  Logger.info('All statistics retrieved', { count: allUrls.length });
-
-  res.json({
-    urls: allUrls,
-    totalUrls: allUrls.length,
-    totalClicks: allUrls.reduce((sum, url) => sum + url.totalClicks, 0)
-  });
-});
-
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -320,52 +248,6 @@ app.get('/health', (req, res) => {
     uptime: process.uptime()
   });
 });
-
-// Validation for bulk URL creation
-const validateBulkURLInput = (req, res, next) => {
-  const { urls } = req.body;
-
-  if (!urls || !Array.isArray(urls) || urls.length === 0) {
-    Logger.warn('Missing or invalid urls array', { body: req.body });
-    return res.status(400).json({
-      error: 'Bad Request',
-      message: 'Missing or invalid urls array'
-    });
-  }
-
-  if (urls.length > 5) {
-    Logger.warn('Too many URLs in bulk request', { count: urls.length });
-    return res.status(400).json({
-      error: 'Bad Request',
-      message: 'Maximum 5 URLs allowed per bulk request'
-    });
-  }
-
-  for (let i = 0; i < urls.length; i++) {
-    const { url, validity } = urls[i];
-    
-    if (!url) {
-      Logger.warn(`Missing URL in bulk request at index ${i}`, { urls });
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: `Missing URL at index ${i}`
-      });
-    }
-
-    if (validity !== undefined) {
-      const validityNum = parseInt(validity);
-      if (isNaN(validityNum) || validityNum <= 0) {
-        Logger.warn(`Invalid validity at index ${i}`, { validity });
-        return res.status(400).json({
-          error: 'Bad Request',
-          message: `Invalid validity at index ${i}. Must be a positive integer representing minutes`
-        });
-      }
-    }
-  }
-
-  next();
-};
 
 // Enhanced analytics endpoint
 app.get('/api/analytics', (req, res) => {
@@ -420,13 +302,14 @@ app.get('/api/analytics', (req, res) => {
       .slice(0, 10)
       .map(url => ({
         shortCode: url.shortcode,
-        shortUrl: `http://localhost:${PORT}/${url.shortcode}`,
+        shortUrl: `${req.protocol}://${req.get('host')}/${url.shortcode}`,
         originalUrl: url.originalUrl,
         customName: url.customName || 'Untitled Link',
         clicks: url.clicks || 0,
         createdAt: url.createdAt,
         expiresAt: url.expiresAt,
-        isValid: url.isValid && new Date() < new Date(url.expiresAt)
+        isValid: url.neverExpires || (url.isValid && new Date() < new Date(url.expiresAt)),
+        neverExpires: url.neverExpires || false
       }));
     
     // Click trends (daily)
