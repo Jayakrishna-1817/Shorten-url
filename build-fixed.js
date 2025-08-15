@@ -35,8 +35,8 @@ const html = `<!DOCTYPE html>
     <script type="text/babel">
         const { useState, useEffect } = React;
         
-        // API Configuration - Use relative paths since frontend and backend are served from same domain
-        const API_BASE_URL = '';
+        // API Configuration
+        const API_BASE_URL = 'https://shorten-url-backend-o3on.onrender.com';
         
         // Icon Components
         const Link2 = ({ size = 24 }) => (
